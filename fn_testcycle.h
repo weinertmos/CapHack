@@ -9,4 +9,9 @@ void testcycle()
   Press(Pin_Timer);
   Press(Pin_SwitchPowerTemp);
   Press(Pin_SwitchPowerTemp);
+  if (DEBUG_MODE == 1)
+  {
+    Serial.println("Testcycle finished");
+  }
+
 }

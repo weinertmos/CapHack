@@ -12,13 +12,13 @@
 #define INCREMENT_TEMP 5 // [C.] Incremental steps in Temp mode
 
 // Power
-#define STEPS_TO_MAX_POWER 10 // [int] How many times does the Up Button have to be pressed to reach MAX_POWER on gadget disaply after entering Power Control Mode (neg value if Down Button must be pressed)
+#define STEPS_TO_MAX_POWER 5 // [int] How many times does the Up Button have to be pressed to reach MAX_POWER on gadget disaply after entering Power Control Mode (neg value if Down Button must be pressed)
 
 #define TIME_SENSOR 750 // [ms] Time that Temperature Sensor needs for measurement
 #define TIME_RESTART 5 // [min] Intervall after which gadget will be restarted
 
-#define DURATION_PRESS 500 // [ms] How long a button gets pushed
-#define DURATION_WAIT 1000 // [ms] How long to delay after pushing a button
+#define DURATION_PRESS 100 // [ms] How long a button gets pushed
+#define DURATION_WAIT 100 // [ms] How long to delay after pushing a button
 
 // Pins
 #define Pin_OnOff 0 // Capacitive On / Off Switch
@@ -38,6 +38,7 @@ boolean TempState_OLD = 0; // save current State for comparison in next loop
 
 double ist; 
 int n_Temp; // determines how often the Up or Down Buttons must be pressed in order to reach target temp setting
+float rest;
 
 
 // Temperature Sensor
@@ -46,16 +47,28 @@ OneWire ds(Pin_Temp); // initialize OneWire protocoll
 
 // Files
 #include "fn_getTemp.h" // get the current Temperature
-#include <fn_Press.h> // Push a button
-#include <fn_restart.h> // Restart gadget
-#include <fn_SwitchToTempControl.h> // Switches to Temperature Control Mode and sets the necessary temp
-#include <fn_SwitchToPowerControl.h> // Switches to Power Control Mode and Sets it to MAX_POWER 
-#include <fn_check_restart.h> // Check if it is time to restart gadget
-#include <fn_check_TempState.h> // check if current temp is close to target temp
-#include <fn_testcycle.h> // Turn gadget on and see if all buttons are working
+#include "fn_Press.h" // Push a button
+#include "fn_restart.h" // Restart gadget
+#include "fn_SwitchToTempControl.h" // Switches to Temperature Control Mode and sets the necessary temp
+#include "fn_SwitchToPowerControl.h" // Switches to Power Control Mode and Sets it to MAX_POWER 
+#include "fn_check_restart.h" // Check if it is time to restart gadget
+#include "fn_check_TempState.h" // check if current temp is close to target temp
+#include "fn_testcycle.h" // Turn gadget on and see if all buttons are working
  
 void setup()
 {
+  if (DEBUG_MODE == 1)
+  {
+    Serial.begin(9600); // Activate Serial Communication
+    Serial.println(" ");
+    Serial.println(" ");
+    Serial.println(" ");
+    Serial.println(" ");
+    Serial.println(" ");
+    Serial.println("Debug Mode on");
+    ist = 20;
+  }
+
   // Set Pin modes
   pinMode(Pin_OnOff, OUTPUT);
   pinMode(Pin_Up, OUTPUT);
@@ -65,33 +78,51 @@ void setup()
 
   // Initialization
   delay(3000);
-  testcycle(); // Turn gadget on for the first time and test all buttons
-  SwitchToPowerControl(); // It is assumed that at start difference in target and actual temp is high
-
   if (DEBUG_MODE == 1)
   {
-    Serial.begin(9600); // Activate Serial Communication
+    Serial.println("Starting Testcycle");
   }
+
+  TIME_RESTART_OLD = millis();
+  testcycle(); // Turn gadget on for the first time and test all buttons
+  SwitchToPowerControl(); // It is assumed that at start difference in target and actual temp is high
 }
  
 void loop()
 {
+  if (DEBUG_MODE == 1)
+  {
+    Serial.println(" ");
+    Serial.println(" ");
+    Serial.println("New Loop");
+    delay(2000);
+  }
+
   // get time and check if a restart is necessary
   now = millis();
   check_restart();
 
   // get temp and check if it is close to target temp
-  ist = getTemp();
+  // ist = getTemp();
+  if (Serial.available() > 0)
+  {
+    ist = Serial.parseInt();
+    while (Serial.available() >0)
+      rest = Serial.read();
+  }
+
+  Serial.print("ist: ");
+  Serial.println(ist);
   TempState = check_TempState(); // 0: not close; 1: close
 
   // If threshold (RANGE_TEMP) is reached change to Temperature Control Mode
-  if ((TempState_OLD = 0) and (TempState = 1))
+  if ((TempState_OLD == 0) and (TempState == 1))
   {
     SwitchToTempControl();
   }
 
   // If difference in target vs. actual temp gets greater than RANGE_TEMP switch to Power Control Mode
-  if ((TempState_OLD = 1) and (TempState = 0))
+  if ((TempState_OLD == 1) and (TempState == 0))
   {
     SwitchToPowerControl();
   }
@@ -100,6 +131,7 @@ void loop()
 
   if (DEBUG_MODE == 1)
   {
-    Serial.print('waawwawaws');
+    Serial.println("End of Loop");
+    Serial.println(" ");
   }
 }

@@ -1,6 +1,11 @@
 // Switches to Power Control Mode and Sets it to MAX_POWER 
 void SwitchToPowerControl()
 {
+  if (DEBUG_MODE == 1)
+  {
+    Serial.println("Switching to Power Control");
+  }
+  
   restart();
   for (int i = 0; i < abs(STEPS_TO_MAX_POWER); i++)
   {

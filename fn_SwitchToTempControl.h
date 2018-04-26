@@ -1,6 +1,11 @@
 // Switches to Temperature Control Mode and sets the necessary temp
 void SwitchToTempControl()
 {
+  if (DEBUG_MODE == 1)
+  {
+    Serial.println("Switching to Temperature Control Mode");
+  }
+
   restart();
   Press(Pin_SwitchPowerTemp);
   if (HOLY_TEMP < START_TEMP)

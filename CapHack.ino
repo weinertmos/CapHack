@@ -8,15 +8,16 @@
 // Temperature
 #define HOLY_TEMP 50 // [°C.] Target Temperature 
 #define OFFSET_TEMP 1 // [°C.] Offset between actual and set temp
-#define RANGE_TEMP 2 // [°C.] Deviation within current temp is considered close to target temp
+#define RANGE_TEMP 2 // [°C.] Range for current temp which is considered close to target temp
 #define START_TEMP 100 // [°C.] Starting Point for temp setting (first number that appears on the gadget display when switching into temp control mode)
 #define INCREMENT_TEMP 5 // [C.] Incremental steps in Temp mode
+#define LOOP_DELAY 200 // [ms] Pause between Loops
 
 // Power
 #define STEPS_TO_MAX_POWER 6 // [int] How many times does the Up Button have to be pressed to reach MAX_POWER on gadget disaply after entering Power Control Mode (neg value if Down Button must be pressed)
 
 #define TIME_SENSOR 750 // [ms] Time that Temperature Sensor needs for measurement
-#define TIME_RESTART 5 // [min] Intervall after which gadget will be restarted
+#define TIME_RESTART 5 // [min] Intervall after which gadget will be restarted to prevent shutdown)
 
 #define DURATION_PRESS 250 // [ms] How long a button gets pushed (250)
 #define DURATION_WAIT 100 // [ms] How long to delay after pushing a button (1000)
@@ -31,7 +32,7 @@
 // Variables
 unsigned long now = millis();
 unsigned long TIME_SENSOR_OLD = millis(); // save current time for temperatuer sensor
-unsigned long TIME_RESTART_OLD; // save current time for restarting gadget
+unsigned long TIME_RESTART_OLD = millis(); // save current time for restarting gadget
 
 boolean TempState = 0; // 0: current temp is far from target temp; 1: current temp is close to target temp
 boolean TempState_OLD = 0; // save current State for comparison in next loop
@@ -49,7 +50,7 @@ OneWire ds(Pin_Temp); // initialize OneWire protocoll
 LiquidCrystal lcd(8, 13, 9, 4, 5, 6, 7);
 
 
-// Files
+// other Files
 #include "fn_getTemp.h" // get the current Temperature
 #include "fn_Press.h" // Push a button
 #include "fn_restart.h" // Restart gadget
@@ -59,6 +60,8 @@ LiquidCrystal lcd(8, 13, 9, 4, 5, 6, 7);
 #include "fn_check_TempState.h" // check if current temp is close to target temp
 #include "fn_testcycle.h" // Turn gadget on and see if all buttons are working
 #include "fn_UpdateLCD.h" // Update text on LCD
+#include "fn_SerialStuff.h" // Serial Connection
+#include "fn_check_switch.h" // Switch between Power Control Mode and Temperature Control Mode
  
 void setup()
 {
@@ -73,9 +76,9 @@ void setup()
     Serial.println("Debug Mode on");
   }
 
-  // Start up LCD
+  // LCD
   lcd.begin(16, 2);
-  getTemp();
+  getTemp(); // First message from OneWire Protocoll not needed
   ist = getTemp();
   UpdateLCD();
 
@@ -90,14 +93,8 @@ void setup()
   pinMode(Pin_SwitchPowerTemp, OUTPUT);
   digitalWrite(Pin_SwitchPowerTemp, HIGH);
 
-  // Initialization
-  delay(3000);
-  if (DEBUG_MODE == 1)
-  {
-    Serial.println("Starting Testcycle");
-  }
-
-  TIME_RESTART_OLD = millis();
+  // Warm up
+  delay(1000);
   testcycle(); // Turn gadget on for the first time and test all buttons
   SwitchToPowerControl(); // It is assumed that at start difference in target and actual temp is high
   // SwitchToTempControl();
@@ -113,42 +110,19 @@ void loop()
     delay(2000);
   }
 
-  // get time and check if a restart is necessary
+  // do the important things
   now = millis();
   check_restart();
-
-  // get temp and check if it is close to target temp
-  getTemp();
-  ist = getTemp(); // do it twice to get correct values in OneWire Protocoll
-  if (Serial.available() > 0)
-  {
-    ist = Serial.parseInt();
-    while (Serial.available() >0)
-      rest = Serial.read();
-  }
-
-  Serial.print("ist: ");
-  Serial.println(ist);
   TempState = check_TempState(); // 0: not close; 1: close
-
-  // If threshold (RANGE_TEMP) is reached change to Temperature Control Mode
-  if ((TempState_OLD == 0) and (TempState == 1))
-  {
-    SwitchToTempControl();
-  }
-
-  // If difference in target vs. actual temp gets greater than RANGE_TEMP switch to Power Control Mode
-  if ((TempState_OLD == 1) and (TempState == 0))
-  {
-    SwitchToPowerControl();
-  }
-
-  TempState_OLD = TempState; // store value for comparison in next loop
-
+  getTemp(); // First message from OneWire Protocoll not needed
+  ist = getTemp();
+  SerialStuff();
+  check_switch();
+  UpdateLCD();
   if (DEBUG_MODE == 1)
   {
     Serial.println("End of Loop");
     Serial.println(" ");
   }
-UpdateLCD();
+delay(LOOP_DELAY);
 }

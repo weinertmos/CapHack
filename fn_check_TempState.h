@@ -9,7 +9,7 @@ int check_TempState()
     // Serial.println(long(HOLY_TEMP) - long(RANGE_TEMP));
   }
 
-  if (ist >= (float(HOLY_TEMP) - float(RANGE_TEMP)))
+  if (ist >= (float(soll) - float(RANGE_TEMP)))
   {
     // Serial.println("returning 1");
     return 1;

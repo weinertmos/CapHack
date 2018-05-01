@@ -3,7 +3,7 @@ void SwitchToPowerControl()
 {
   if (DEBUG_MODE == 1)
   {
-    Serial.println("Switching to Power Control");
+    Serial.println("Switching to Power Control Mode");
   }
   
   restart();

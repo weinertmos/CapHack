@@ -8,19 +8,23 @@ void SwitchToTempControl()
 
   restart();
   Press(Pin_SwitchPowerTemp);
-  if (HOLY_TEMP < START_TEMP)
+  if (soll < START_TEMP)
   {
-    n_Temp = (START_TEMP - HOLY_TEMP - OFFSET_TEMP) % INCREMENT_TEMP;
+    n_Temp = int((START_TEMP - soll - OFFSET_TEMP) / INCREMENT_TEMP + 0.5);
+    Serial.print("n_Temp1: ");
+    Serial.println(n_Temp);
     for (int i = 0; i < n_Temp;  i++)
     {
       Press(Pin_Down);
     }
   }
 
-  else if (HOLY_TEMP > START_TEMP)
+  else if (soll > START_TEMP)
   {
-    n_Temp = (START_TEMP - HOLY_TEMP + OFFSET_TEMP) % INCREMENT_TEMP;
-    for (int i = 0; i < -n_Temp; i++)
+    n_Temp = int((START_TEMP - soll - OFFSET_TEMP) / INCREMENT_TEMP + 0.5);
+    Serial.print("n_Temp2: ");
+    Serial.println(n_Temp);
+    for (int i = 0; i <= -n_Temp; i++)
     {
       Press(Pin_Up);
     }

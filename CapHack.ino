@@ -1,46 +1,46 @@
 // Libraries
 #include <OneWire.h> // Dallas DS18B20
-#include <LiquidCrystal.h>
+#include <LiquidCrystal.h> // LCD
 
 // Constants
-#define DEBUG_MODE 1 // Set to 1 for debugging stuff
+#define DEBUG_MODE 1 // default 0 0; set to 1 for debugging stuff to appear
 
 // Temperature
-#define HOLY_TEMP 50 // [°C.] Target Temperature 
-#define OFFSET_TEMP 1 // [°C.] Offset between actual and set temp
+#define HOLY_TEMP 80 // [°C.] Target Temperature 
+#define OFFSET_TEMP 1 // [°C.] Offset between actual and set temp (depending on heat transfer, water volume etc.)
 #define RANGE_TEMP 2 // [°C.] Range for current temp which is considered close to target temp
 #define START_TEMP 100 // [°C.] Starting Point for temp setting (first number that appears on the gadget display when switching into temp control mode)
 #define INCREMENT_TEMP 5 // [C.] Incremental steps in Temp mode
 #define LOOP_DELAY 200 // [ms] Pause between Loops
 
 // Power
-#define STEPS_TO_MAX_POWER 6 // [int] How many times does the Up Button have to be pressed to reach MAX_POWER on gadget disaply after entering Power Control Mode (neg value if Down Button must be pressed)
+#define STEPS_TO_MAX_POWER 6 // [int] How many times does the Up Button have to be pressed to reach MAX_POWER on gadget disaply after entering Power Control Mode
 
 #define TIME_SENSOR 750 // [ms] Time that Temperature Sensor needs for measurement
-#define TIME_RESTART 5 // [min] Intervall after which gadget will be restarted to prevent shutdown)
+#define TIME_RESTART 5 // [min] Intervall after which gadget will be restarted (to prevent shutdown)
 
 #define DURATION_PRESS 250 // [ms] How long a button gets pushed (250)
-#define DURATION_WAIT 100 // [ms] How long to delay after pushing a button (1000)
+#define DURATION_WAIT 100 // [ms] How long to wait after pushing a button (1000)
 
-// Pins
+// Pin numbers 
 #define Pin_OnOff 2 // Capacitive On / Off Switch
 #define Pin_Up 3 // Capacitive Up Button
 #define Pin_Down 11 // Capacitive Down Button
-#define Pin_SwitchPowerTemp 12 // Capacitive Switch between Temperature control or Power Control mode
+#define Pin_SwitchPowerTemp 12 // Capacitive Switch between Temperature Control Mode and Power Control Mode
 #define Pin_Temp 13 // Yellow wire from DS18B20 at this pin
 
 // Variables
 unsigned long now = millis();
-unsigned long TIME_SENSOR_OLD = millis(); // save current time for temperatuer sensor
-unsigned long TIME_RESTART_OLD = millis(); // save current time for restarting gadget
+unsigned long TIME_SENSOR_OLD = millis(); // store current time for temperature sensor
+unsigned long TIME_RESTART_OLD = millis(); // store current time for restarting gadget
 
 boolean TempState = 0; // 0: current temp is far from target temp; 1: current temp is close to target temp
-boolean TempState_OLD = 0; // save current State for comparison in next loop
+boolean TempState_OLD = 0; // store current State for comparison in next loop
 
 double ist; 
 double soll = HOLY_TEMP;
 int n_Temp; // determines how often the Up or Down Buttons must be pressed in order to reach target temp setting
-float rest;
+float rest; // dump for overhead serial messages
 
 
 // Temperature Sensor
@@ -78,8 +78,8 @@ void setup()
 
   // LCD
   lcd.begin(16, 2);
-  getTemp(); // First message from OneWire Protocoll not needed
-  ist = getTemp();
+  // getTemp(); // First message from OneWire Protocoll not needed
+  ist = getTemp(); 
   UpdateLCD();
 
 
@@ -92,6 +92,8 @@ void setup()
   digitalWrite(Pin_Down, HIGH);
   pinMode(Pin_SwitchPowerTemp, OUTPUT);
   digitalWrite(Pin_SwitchPowerTemp, HIGH);
+
+  pinMode(Pin_Temp, INPUT_PULLUP);
 
   // Warm up
   delay(1000);
@@ -113,12 +115,13 @@ void loop()
   // do the important things
   now = millis();
   check_restart();
-  TempState = check_TempState(); // 0: not close; 1: close
-  getTemp(); // First message from OneWire Protocoll not needed
+  Serial.println(TempState);
   ist = getTemp();
+  getTemp(); // Second message from OneWire Protocoll not needed
   SerialStuff();
-  check_switch();
+  TempState = check_TempState(); // 0: not close; 1: close
   UpdateLCD();
+  check_switch();
   if (DEBUG_MODE == 1)
   {
     Serial.println("End of Loop");

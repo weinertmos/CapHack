@@ -7,6 +7,11 @@ void SerialStuff()
     while (Serial.available() >0)
       rest = Serial.read();
   }
+  if (DEBUG_MODE == 1)
+  {
   Serial.print("ist: ");
   Serial.println(ist);
+  Serial.print("soll: ");
+  Serial.println(soll);
+    }
 }

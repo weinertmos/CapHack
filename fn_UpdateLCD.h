@@ -16,12 +16,12 @@ lcd.print("s:");
 lcd.print(soll);
 lcd.print((char)223);
 lcd.print("C");
-if (TempState = 0)
+if (TempState == 0)
 {
   lcd.setCursor(12,1);
   lcd.print("Heat");
 }
-else if (TempState = 1)
+else if (TempState == 1)
 {
   lcd.setCursor(12,1);
   lcd.print("Hold");

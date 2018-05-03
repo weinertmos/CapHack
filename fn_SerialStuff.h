@@ -3,7 +3,7 @@ void SerialStuff()
 {
   if (Serial.available() > 0)
   {
-    ist = Serial.parseInt();
+    soll = Serial.parseInt();
     while (Serial.available() >0)
       rest = Serial.read();
   }

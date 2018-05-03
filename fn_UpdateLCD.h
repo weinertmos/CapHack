@@ -26,4 +26,10 @@ else if (TempState == 1)
   lcd.setCursor(12,1);
   lcd.print("Hold");
 }
+if (count % 2 == 0){
+    lcd.setCursor(15,0);
+    lcd.print("#");
+    count = 0;
+}
+count += 1;
 }

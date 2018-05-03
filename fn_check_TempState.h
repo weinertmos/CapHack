@@ -1,14 +1,6 @@
 // check if current temp is close to target temp
 int check_TempState()
 {
-  if (DEBUG_MODE == 1)
-  {
-    // Serial.print("TempState =  ");
-    // Serial.println((TempState));
-    // Serial.println(ist);
-    // Serial.println(long(HOLY_TEMP) - long(RANGE_TEMP));
-  }
-
   if (ist >= (float(soll) - float(RANGE_TEMP)))
   {
     // Serial.println("returning 1");

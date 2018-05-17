@@ -6,9 +6,9 @@
 #define DEBUG_MODE 1 // default 0 0; set to 1 for debugging stuff to appear
 
 // Temperature
-#define HOLY_TEMP 22 // [°C.] Target Temperature 
-#define OFFSET_TEMP 1 // [°C.] Offset between actual and set temp (depending on heat transfer, water volume etc.)
-#define RANGE_TEMP 2 // [°C.] Range for current temp which is considered close to target temp
+#define HOLY_TEMP 35 // [°C.] Target Temperature 
+#define OFFSET_TEMP 5 // [°C.] Offset between actual and set temp (depending on heat transfer, water volume etc.)
+#define RANGE_TEMP 1 // [°C.] Range for current temp which is considered close to target temp
 #define START_TEMP 100 // [°C.] Starting Point for temp setting (first number that appears on the gadget display when switching into temp control mode)
 #define INCREMENT_TEMP 5 // [C.] Incremental steps in Temp mode
 #define LOOP_DELAY 1 // [ms] Pause between Loops
@@ -20,7 +20,7 @@
 #define TIME_RESTART 5 // [min] Intervall after which gadget will be restarted (to prevent shutdown)
 
 #define DURATION_PRESS 250 // [ms] How long a button gets pushed (250)
-#define DURATION_WAIT 100 // [ms] How long to wait after pushing a button (1000)
+#define DURATION_WAIT 500 // [ms] How long to wait after pushing a button (1000)
 
 // Pin numbers 
 #define Pin_OnOff 2 // Capacitive On / Off Switch
@@ -45,9 +45,10 @@ unsigned long count = 1;
 
 boolean TempState = 0; // 0: current temp is far from target temp; 1: current temp is close to target temp
 boolean TempState_OLD = 0; // store current State for comparison in next loop
+boolean hold = 0; 
 
-double ist; 
-double soll = HOLY_TEMP;
+float ist; 
+float soll = float(HOLY_TEMP);
 int n_Temp; // determines how often the Up or Down Buttons must be pressed in order to reach target temp setting
 float rest; // dump for overhead serial messages
 
@@ -134,6 +135,9 @@ void loop()
   check_restart();
   ist = getTemp();
   getTemp(); // Second message from OneWire Protocoll not needed
+  while ((ist > 110) or (ist < 0)){
+    getTemp();
+  }
   SerialStuff();
   TempState = check_TempState(); // 0: not close; 1: close
   UpdateLCD();

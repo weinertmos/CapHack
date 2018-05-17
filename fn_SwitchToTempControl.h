@@ -29,5 +29,6 @@ void SwitchToTempControl()
       Press(Pin_Up);
     }
   }
+  hold = 1;
 
 }

@@ -13,3 +13,5 @@ int read_LCD_buttons(){
   if (adc_key_in < 790)  return btnSELECT;   
   return btnNONE;  // when all others fail, return this...
 }
+
+// source: https://create.arduino.cc/projecthub/niftyjoeman/osepp-lcd-and-keypad-shield-d5b46e¥≈¥¥

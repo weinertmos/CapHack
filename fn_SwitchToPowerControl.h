@@ -18,5 +18,6 @@ void SwitchToPowerControl()
       Press(Pin_Down);
     }
   }
+  hold = 0;
 
 }
